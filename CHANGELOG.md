@@ -1,3 +1,7 @@
+# 0.3.0.0
+
+- Redefine `Generically`'s `mappend` as `(<>)`
+
 # 0.2.0.0
 
 - Remove `Generic.Data.Types.Map`

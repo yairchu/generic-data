@@ -38,7 +38,7 @@ instance (Generic a, Semigroup (Rep a ())) => Semigroup (Generically a) where
 
 instance (Generic a, Monoid (Rep a ())) => Monoid (Generically a) where
   mempty = gmempty
-  mappend = gmappend'
+  mappend = (<>)
 
 instance (Generic a, GEnum StandardEnum (Rep a)) => Enum (Generically a) where
   fromEnum = gfromEnum

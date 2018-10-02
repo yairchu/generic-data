@@ -39,7 +39,7 @@ library
   hs-source-dirs:      orphans
   exposed-modules:
     Generic.Data.Orphans
-  ghc-options:         -Wall
+  ghc-options:         -Wall -Wcompat
   default-language:    Haskell2010
 
 test-suite unit-test
