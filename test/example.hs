@@ -23,5 +23,9 @@ data Foo2 a = Bar2 [a] [a]
   deriving Semigroup via (Generically (Foo2 a))
 #endif
 
+data Foo3 = A3 | B3 [Int]
+  deriving (Generic, Show)
+  deriving Semigroup via Generically Foo3
+
 main :: IO ()
 main = pure ()

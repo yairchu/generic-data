@@ -4,13 +4,17 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
 
 module Generic.Data.Internal.Generically where
 
 import Control.Applicative
 import Data.Functor.Classes
+import Data.Kind
 import Data.Semigroup
 import GHC.Generics
+import GHC.TypeLits
 
 import Generic.Data.Internal.Prelude
 import Generic.Data.Internal.Enum
@@ -33,13 +37,26 @@ instance (Generic a, Ord (Rep a ())) => Ord (Generically a) where
 instance (Generic a, GShow0 (Rep a)) => Show (Generically a) where
   showsPrec = gshowsPrec
 
-instance (Generic a, Semigroup (Rep a ())) => Semigroup (Generically a) where
+type family BothOk a b where
+    BothOk '() '() = '()
+
+type family ErrorIfSum msg a where
+    ErrorIfSum msg V1 = '()
+    ErrorIfSum msg U1 = '()
+    ErrorIfSum msg (K1 i c) = '()
+    ErrorIfSum msg (M1 i c f) = ErrorIfSum msg f
+    ErrorIfSum msg (f :*: g) = BothOk (ErrorIfSum msg f) (ErrorIfSum msg g)
+    ErrorIfSum msg (f :+: g) = TypeError (msg ':<>: 'Text " for sum types")
+
+type NoGenericFor (c :: * -> Constraint) = 'Text "No generic instance of " ':<>: 'ShowType c
+
+instance (ErrorIfSum (NoGenericFor Semigroup) (Rep a) ~ '(), Generic a, Semigroup (Rep a ())) => Semigroup (Generically a) where
   (<>) = gmappend
 
 -- | This uses the 'Semigroup' instance of the wrapped type 'a' to define 'mappend'.
 -- The purpose of this instance is to derive 'mempty', while remaining consistent
 -- with possibly custom 'Semigroup' instances.
-instance (Semigroup a, Generic a, Monoid (Rep a ())) => Monoid (Generically a) where
+instance (ErrorIfSum (NoGenericFor Semigroup) (Rep a) ~ '(), Semigroup a, Generic a, Monoid (Rep a ())) => Monoid (Generically a) where
   mempty = gmempty
   mappend (Generically x) (Generically y) = Generically (x <> y)
 
